@@ -25,6 +25,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 		build-essential \
 		ca-certificates \
 		cmake \
+		file \
 		git
 
 # Build Tini
@@ -39,8 +40,8 @@ RUN cd /tmp/tini/ \
 	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr \
 	&& make -j"$(nproc)" \
 	&& make install \
-	&& /usr/bin/tini --version \
-	&& /usr/bin/tini-static --version
+	&& file /usr/bin/tini && /usr/bin/tini --version \
+	&& file /usr/bin/tini-static && /usr/bin/tini-static --version
 
 ##################################################
 ## "tini" stage
