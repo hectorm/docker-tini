@@ -31,8 +31,9 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 ARG TINI_TREEISH=v0.18.0
 ARG TINI_REMOTE=https://github.com/krallin/tini.git
 RUN mkdir -p /tmp/tini/ && cd /tmp/tini/ \
-	&& git clone --recursive "${TINI_REMOTE}" ./ \
-	&& git checkout "${TINI_TREEISH}"
+	&& git clone "${TINI_REMOTE}" ./ \
+	&& git checkout "${TINI_TREEISH}" \
+	&& git submodule update --init --recursive
 RUN cd /tmp/tini/ \
 	&& export CFLAGS='-DPR_SET_CHILD_SUBREAPER=36 -DPR_GET_CHILD_SUBREAPER=37' \
 	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr \
