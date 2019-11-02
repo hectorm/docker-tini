@@ -1,10 +1,10 @@
 m4_changequote([[, ]])
 
 ##################################################
-## "build-tini" stage
+## "build" stage
 ##################################################
 
-m4_ifdef([[CROSS_ARCH]], [[FROM docker.io/CROSS_ARCH/ubuntu:18.04]], [[FROM docker.io/ubuntu:18.04]]) AS build-tini
+m4_ifdef([[CROSS_ARCH]], [[FROM docker.io/CROSS_ARCH/ubuntu:18.04]], [[FROM docker.io/ubuntu:18.04]]) AS build
 m4_ifdef([[CROSS_QEMU]], [[COPY --from=docker.io/hectormolinero/qemu-user-static:latest CROSS_QEMU CROSS_QEMU]])
 
 # Install system packages
@@ -20,17 +20,17 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 # Build Tini
 ARG TINI_TREEISH=v0.18.0
 ARG TINI_REMOTE=https://github.com/krallin/tini.git
-RUN mkdir -p /tmp/tini/ && cd /tmp/tini/ \
-	&& git clone "${TINI_REMOTE:?}" ./ \
-	&& git checkout "${TINI_TREEISH:?}" \
-	&& git submodule update --init --recursive
-RUN cd /tmp/tini/ \
-	&& export CFLAGS='-DPR_SET_CHILD_SUBREAPER=36 -DPR_GET_CHILD_SUBREAPER=37' \
-	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr \
-	&& make -j"$(nproc)" \
-	&& make install \
-	&& file /usr/bin/tini-static \
-	&& /usr/bin/tini-static --version
+RUN mkdir /tmp/tini/
+WORKDIR /tmp/tini/
+RUN git clone "${TINI_REMOTE:?}" ./
+RUN git checkout "${TINI_TREEISH:?}"
+RUN git submodule update --init --recursive
+ENV CFLAGS='-DPR_SET_CHILD_SUBREAPER=36 -DPR_GET_CHILD_SUBREAPER=37'
+RUN cmake ./ -DCMAKE_INSTALL_PREFIX=/usr
+RUN make -j"$(nproc)"
+RUN make install
+RUN file /usr/bin/tini-static
+RUN /usr/bin/tini-static --version
 
 ##################################################
 ## "tini" stage
@@ -39,6 +39,6 @@ RUN cd /tmp/tini/ \
 FROM scratch AS tini
 
 # Copy Tini binary
-COPY --from=build-tini /usr/bin/tini-static /usr/bin/tini
+COPY --from=build /usr/bin/tini-static /usr/bin/tini
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
