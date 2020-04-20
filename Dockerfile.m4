@@ -18,7 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 		git
 
 # Build Tini
-ARG TINI_TREEISH=v0.18.0
+ARG TINI_TREEISH=v0.19.0
 ARG TINI_REMOTE=https://github.com/krallin/tini.git
 RUN mkdir /tmp/tini/
 WORKDIR /tmp/tini/
